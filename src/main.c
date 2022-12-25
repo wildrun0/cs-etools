@@ -3,6 +3,7 @@
 #include <command.h>
 #include <world.h>
 #include <client.h>
+#include <event.h>
 #include <log.h>
 
 Plugin_SetVersion(1);
@@ -54,7 +55,6 @@ COMMAND_FUNC(Tp) {
 	COMMAND_PRINTUSAGE;
 }
 
-
 COMMAND_FUNC(TpPos) {
 	COMMAND_SETUSAGE("/TpPos <x> <y> <z> or /TpPos <whom> <x> <y> <z>");
 	Client *player = ccdata->caller;
@@ -98,20 +98,48 @@ COMMAND_FUNC(TpPos) {
 	COMMAND_PRINTUSAGE;
 }
 
+COMMAND_FUNC(Announce) {
+	COMMAND_SETUSAGE("/announce <text>");
+	cs_char announcement[64];
+
+	if (COMMAND_GETARG(announcement, 64, 0)){
+		for (cs_size i = 0; announcement[i] != '\0'; i++){
+			announcement[i] = announcement[i] == '%' ? '&' : announcement[i];
+		}
+		Client_Chat(CLIENT_BROADCAST, MESSAGE_TYPE_ANNOUNCE, announcement);
+	} else {
+		COMMAND_PRINTUSAGE;
+	}
+}
 
 Command_DeclareBunch (Commands) { 
 	COMMAND_BUNCH_ADD(Clear, CMDF_CLIENT, "Clear chat"),
 	COMMAND_BUNCH_ADD(Tp, CMDF_CLIENT, "Teleport to a player"),
 	COMMAND_BUNCH_ADD(TpPos, CMDF_CLIENT, "Teleport to specific coords"),
+	COMMAND_BUNCH_ADD(Announce, CMDF_CLIENT, "Make an announcement"),
 	COMMAND_BUNCH_END
 };
 
+static void onHandshake(onHandshakeDone *h) {
+	Client *cl = h->client;
+	cs_bool isOp = Client_IsOP(cl);
+	cs_char clName[65] = {'&', 'c', '\0'};
+	String_AppendToArray(clName, Client_GetDisplayName(cl));
+	if (isOp) { Client_SetDisplayName(cl, clName); }
+}
+
+Event_DeclareBunch (events) {
+    EVENT_BUNCH_ADD('v', EVT_ONHANDSHAKEDONE, onHandshake),
+
+    EVENT_BUNCH_END
+};
 
 cs_bool Plugin_Load(void) {
-    return Command_RegisterBunch(Commands);
+    return Command_RegisterBunch(Commands) && Event_RegisterBunch(events);
 }
 
 cs_bool Plugin_Unload(cs_bool force) {
 	Command_UnregisterBunch(Commands);
+	Event_UnregisterBunch(events);
 	return true;
 }
