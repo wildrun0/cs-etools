@@ -9,11 +9,11 @@ FILETYPE VFT_DLL
 	{
 		BLOCK "040904B0"
 		{
-			VALUE "FileDescription", "Base CServer functionality\000"
-			VALUE "ProductName", "Base plugin\000"
+			VALUE "FileDescription", "ETools for CServer\000"
+			VALUE "ProductName", "ETools\000"
 			VALUE "ProductVersion", "1.0\000"
-			VALUE "LegalCopyright", "Copyright (c) 2022 igor725"
-			VALUE "OriginalFilename", "base.dll\000"
+			VALUE "LegalCopyright", "Copyright (c) 2022 wildurn0"
+			VALUE "OriginalFilename", "etools.dll\000"
 		}
 	}
 

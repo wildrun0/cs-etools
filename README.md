@@ -1,2 +1,2 @@
 # cs-etools
-C version of etools.lua plugin
+C version of [etools.lua](https://github.com/wildrun0/etools)

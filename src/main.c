@@ -6,7 +6,7 @@
 #include <log.h>
 
 Plugin_SetVersion(1);
-Plugin_SetURL("https://github.com/wildrun0/etools");
+Plugin_SetURL("https://github.com/wildrun0/cs-etools");
 
 COMMAND_FUNC(Clear) {
 	COMMAND_SETUSAGE("/clear");
@@ -59,49 +59,51 @@ COMMAND_FUNC(TpPos) {
 	COMMAND_SETUSAGE("/TpPos <x> <y> <z> or /TpPos <whom> <x> <y> <z>");
 	Client *player = ccdata->caller;
 
-	cs_char _x[64];
-	cs_char y[16];
-	cs_char z[16];
-	cs_char _z[16];
+	cs_char data[16];
 
 	Vec newPos;
 	Ang myAng;
 
 	cs_char teleportString[64];
-	if (
-		COMMAND_GETARG(_x, 64, 0),
-		COMMAND_GETARG(y, 16, 1),
-		COMMAND_GETARG(z, 16, 2)
-	){
-		if(COMMAND_GETARG(z, 16, 3)){
-			player = Client_GetByName(_x);
-			if (!player) {
-				COMMAND_PRINT("&cPlayer not found!");
+	if (COMMAND_GETARG(data, 16, 3)){
+		newPos.z = String_ToFloat(data);
+		if (COMMAND_GETARG(data, 16, 0)){
+			player = Client_GetByName(data);
+			if (!player) { COMMAND_PRINT("&cPlayer not found"); }
+			if (COMMAND_GETARG(data, 16, 1)){
+				newPos.x = String_ToFloat(data);
+				if (COMMAND_GETARG(data, 16, 2)){
+					newPos.y = String_ToFloat(data)+2;
+				}
 			}
-			newPos.x = String_ToFloat(y);
-			newPos.y = String_ToFloat(z)+2;
-			newPos.z = String_ToFloat(_z);
-			String_FormatBuf(teleportString, 64, "&e%s &awas teleported to %.3f %.3f %.3f", Client_GetName(player), newPos.x, newPos.y-2, newPos.z);
-		} else {
-			newPos.x = String_ToFloat(_x);
-			newPos.y = String_ToFloat(y)+2;
-			newPos.z = String_ToFloat(z);
-			String_FormatBuf(teleportString, 64, "&aTeleported to %.3f %.3f %.3f", Client_GetName(player), newPos.x, newPos.y-2, newPos.z);
 		}
-		Log_Info("%s", newPos);
+		String_FormatBuf(teleportString, 64, "&e%s &awas teleported to %.3f %.3f %.3f", Client_GetName(player), newPos.x, newPos.y-2, newPos.z);
+	} else {
+		if (COMMAND_GETARG(data, 16, 0)){
+			newPos.x = String_ToFloat(data);
+			if (COMMAND_GETARG(data, 16, 1)){
+				newPos.y = String_ToFloat(data)+2;
+				if (COMMAND_GETARG(data, 16, 2)){
+					newPos.z = String_ToFloat(data);
+				}
+			}
+		}
+		String_FormatBuf(teleportString, 64, "&aTeleported to %.3f %.3f %.3f", newPos.x, newPos.y-2, newPos.z);
+	}
+	if ((ccdata->args) != NULL ) {
 		Client_GetPosition(player, NULL, &myAng);
 		Client_TeleportTo(player, &newPos, &myAng);
-		COMMAND_PRINTF(teleportString);
+		COMMAND_PRINT(teleportString);
 	}
 	COMMAND_PRINTUSAGE;
 }
 
 
 Command_DeclareBunch (Commands) { 
-    COMMAND_BUNCH_ADD(Clear, CMDF_CLIENT, "Clear chat"),
+	COMMAND_BUNCH_ADD(Clear, CMDF_CLIENT, "Clear chat"),
 	COMMAND_BUNCH_ADD(Tp, CMDF_CLIENT, "Teleport to a player"),
 	COMMAND_BUNCH_ADD(TpPos, CMDF_CLIENT, "Teleport to specific coords"),
-    COMMAND_BUNCH_END
+	COMMAND_BUNCH_END
 };
 
 
@@ -110,6 +112,6 @@ cs_bool Plugin_Load(void) {
 }
 
 cs_bool Plugin_Unload(cs_bool force) {
-    Command_UnregisterBunch(Commands);
+	Command_UnregisterBunch(Commands);
 	return true;
 }
